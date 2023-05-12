@@ -1,5 +1,6 @@
 use super::{SweetAgents, SweetAppBatch, SweetConductor, SweetConductorConfig};
 use crate::conductor::api::error::ConductorApiResult;
+use crate::sweettest::SweetCell;
 use ::fixt::prelude::StdRng;
 use futures::future;
 use hdk::prelude::*;
@@ -177,6 +178,13 @@ impl SweetConductorBatch {
         for c in self.0.iter() {
             c.force_all_publish_dht_ops().await;
         }
+    }
+
+    /// Wait for the first conductor to have started gossipping. If all conductors in this batch were
+    /// started at the same time, this should be enough to ensure that all conductors have started gossipping.
+    /// If other conductors are added later, separately check that they have started gossipping as required.
+    pub async fn require_initial_gossip_activity_for_cell(&self, cell: &SweetCell) {
+        SweetConductor::require_initial_gossip_activity_for_cell(&self.0[0], cell).await;
     }
 }
 
